@@ -10,7 +10,7 @@ mongoose.connect(db, error => {
     } else {
         console.log('Connected to mongodb');
     }
-})
+});
 
 const router = express.Router();
 
@@ -26,6 +26,22 @@ router.post('/register', (req, res) => {
             console.error(error);
         } else {
             res.status(200).send(registeredUser);
+        }
+    })
+});
+
+router.post('/login', (req, res) => {
+    let userData = req.body;
+
+    User.findOne({email: userData.email}, (error, user) => {
+        if(error) {
+            console.error(error);
+        } else if(!user) {
+            res.status(401).send('Invalid email');
+        } else if(userData.password !== user.password) {
+            res.status(401).send('Invalid password');
+        } else {
+            res.status(200).send(user);
         }
     })
 })
