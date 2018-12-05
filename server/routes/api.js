@@ -3,6 +3,8 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const User = require('../models/user');
 
+const router = express.Router();
+
 const db = 'mongodb://user-ramin:raminghaderi77@ds121861.mlab.com:21861/events-db'
 
 mongoose.connect(db, error => {
@@ -13,7 +15,21 @@ mongoose.connect(db, error => {
     }
 });
 
-const router = express.Router();
+function verifyToken(req, res, next) {
+    if (!req.headers.authorization) {
+        return res.status(401).send('Unauthorized request');
+    }
+    let token = req.headers.authorization.split(' ')[1];
+    if (token === 'null') {
+        return res.status(401).send('Unauthorized request');
+    }
+    let payload = jwt.verify(token, 'secretKey');
+    if(!payload) {
+        return res.status(401).send('Unauthorized request');
+    }
+    req.userId = payload.subject;
+    next();
+}
 
 router.get('/', (req, res) => {
     res.send('Hello from Ramin');
@@ -94,7 +110,7 @@ router.get('/events', (req, res) => {
     res.json(events);
 });
 
-router.get('/special', (req, res) => {
+router.get('/special', verifyToken, (req, res) => {
     let specialEvents = [
         {
           "_id": "1",
